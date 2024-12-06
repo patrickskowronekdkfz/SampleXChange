@@ -1,0 +1,28 @@
+logging:
+  level:
+    org:
+      springframework: INFO
+app:
+  version: '@project.version@'
+
+tf:
+  profile: "none"
+  resources:
+    filter: ""
+    start: ""
+  fhir:
+    server:
+      acceptssl: "false"
+      source:
+        address: ""
+        username: ""
+        password: ""
+      target:
+        address: ""
+        username: ""
+        password: ""
+    filesystem: "false"
+  export:
+    file:
+      path: "/data"
+
