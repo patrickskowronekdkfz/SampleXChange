@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  transfair:
+    image: samply/transfair
+    volumes:
+      - ${PWD}/snomed_icd10.txt:/app/snomed_icd10.txt:ro
