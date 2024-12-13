@@ -49,12 +49,12 @@ public class FhirComponent {
 
     sourceFhirServer =
         new FhirClient(
-            ctx, configuration.getSourceFhirServer(), configuration.isFhirClientAcceptSsl());
+            ctx, configuration.getSourceServer(), configuration.isFhirClientAcceptSsl());
     setAuth(
         sourceFhirServer,
-        configuration.getSourceFhirServerUsername(),
-        configuration.getSourceFhirServerPassword());
-    log.info("Start collecting Resources from FHIR server {}", configuration.getSourceFhirServer());
+        configuration.getSourceServerUsername(),
+        configuration.getSourceServerPassword());
+    log.info("Start collecting Resources from FHIR server {}", configuration.getSourceServer());
 
     return sourceFhirServer.getClient();
   }
@@ -62,7 +62,7 @@ public class FhirComponent {
   private void setAuth(FhirClient sourceClient, String user, String password) {
     if (!user.isBlank() && !password.isBlank()) {
       sourceClient.setBasicAuth(
-          configuration.getSourceFhirServerUsername(), configuration.getSourceFhirServerPassword());
+          configuration.getSourceServerUsername(), configuration.getSourceServerPassword());
     }
   }
 
@@ -73,17 +73,18 @@ public class FhirComponent {
       return fhirExportInterface;
     }
 
-    if (configuration.isSaveToFileSystem()) {
-      this.fhirExportInterface = new FhirFileSaver(ctx, configuration.getExportFilePath());
+    if (!configuration.getFileExportPath().isBlank()) {
+      log.info("Exporting resources to file system " + configuration.getFileExportPath());
+      this.fhirExportInterface = new FhirFileSaver(ctx, configuration.getFileExportPath());
     } else {
       FhirServerSaver fhirServerSaver =
           new FhirServerSaver(
-              ctx, configuration.getTargetFhirServer(), configuration.isFhirClientAcceptSsl());
+              ctx, configuration.getTargetServer(), configuration.isFhirClientAcceptSsl());
       setAuth(
           fhirServerSaver.getClient(),
-          configuration.getTargetFhirServerUsername(),
-          configuration.getTargetFhirServerPassword());
-      log.info("Start exporting resources to FHIR server " + configuration.getTargetFhirServer());
+          configuration.getTargetServerUsername(),
+          configuration.getTargetServerPassword());
+      log.info("Exporting resources to FHIR server " + configuration.getTargetServer());
       fhirExportInterface = fhirServerSaver;
     }
 

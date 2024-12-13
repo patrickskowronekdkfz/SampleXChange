@@ -5,24 +5,15 @@ logging:
 app:
   version: '@project.version@'
 
-tf:
-  profile: "none"
-  resources:
-    filter: ""
-    start: ""
-  fhir:
-    server:
-      acceptssl: "false"
-      source:
-        address: ""
-        username: ""
-        password: ""
-      target:
-        address: ""
-        username: ""
-        password: ""
-    filesystem: "false"
-  export:
-    file:
-      path: "/data"
+profile: "none"
+disablessl: "false"
+source:
+  url: ""
+  username: ""
+  password: ""
+target:
+  url: ""
+  username: ""
+  password: ""
+fileexportpath: ""
 

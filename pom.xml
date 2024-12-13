@@ -14,8 +14,7 @@
 	<name>SampleXChange</name>
 	<description>SampleXChange</description>
 	<properties>
-		<java.version>22</java.version>
-		<version.maven.plugin.checkstyle>3.3.0</version.maven.plugin.checkstyle>
+		<java.version>17</java.version>
 		<hapi.version>6.8.8</hapi.version>
 		<testcontainers.version>1.18.3</testcontainers.version>
 	</properties>
@@ -115,27 +114,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>${version.maven.plugin.checkstyle}</version>
-				<dependencies>
-					<dependency>
-						<groupId>com.puppycrawl.tools</groupId>
-						<artifactId>checkstyle</artifactId>
-						<version>10.12.1</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<id>validate</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

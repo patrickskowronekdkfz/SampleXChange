@@ -54,12 +54,8 @@ public class FhirTransfer {
   }
 
   /** Fetches all patient ids. */
-  public Set<String> fetchPatientIds(IGenericClient client, String startResource) {
-    if (Objects.equals(startResource, "Specimen")) {
+  public Set<String> fetchPatientIds(IGenericClient client) {
       return this.getSpecimenPatients(client);
-    } else {
-      return this.getPatientRefs(client);
-    }
   }
 
   private <T extends IBaseResource> List<T> fetchResources(

@@ -12,39 +12,30 @@ public class Configuration {
   @Value("${app.version}")
   private String appVersion;
 
-  @Value("${tf.fhir.server.source.address}")
-  private String sourceFhirServer;
+  @Value("${source.url}")
+  private String sourceServer;
 
-  @Value("${tf.fhir.server.source.username}")
-  private String sourceFhirServerUsername;
+  @Value("${source.username}")
+  private String sourceServerUsername;
 
-  @Value("${tf.fhir.server.source.password}")
-  private String sourceFhirServerPassword;
+  @Value("${source.password}")
+  private String sourceServerPassword;
 
-  @Value("${tf.resources.start}")
-  private String startResource;
-
-  @Value("${tf.resources.filter}")
-  private String resourcesFilter;
-
-  @Value("${tf.profile}")
+  @Value("${profile}")
   private String profile;
 
-  @Value("${tf.fhir.server.target.address}")
-  private String targetFhirServer;
+  @Value("${target.url}")
+  private String targetServer;
 
-  @Value("${tf.fhir.server.target.username}")
-  private String targetFhirServerUsername;
+  @Value("${target.username}")
+  private String targetServerUsername;
 
-  @Value("${tf.fhir.server.target.password}")
-  private String targetFhirServerPassword;
+  @Value("${target.password}")
+  private String targetServerPassword;
 
-  @Value("${tf.fhir.filesystem}")
-  private boolean saveToFileSystem;
+  @Value("${fileexportpath}")
+  private String fileExportPath;
 
-  @Value("${tf.export.file.path}")
-  private String exportFilePath;
-
-  @Value("${tf.fhir.server.acceptssl}")
+  @Value("${disablessl}")
   private boolean fhirClientAcceptSsl;
 }
