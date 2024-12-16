@@ -3,8 +3,14 @@ package de.samply.samplexchange.mapper.fhir.bbmri;
 import de.samply.samplexchange.configuration.Configuration;
 import de.samply.samplexchange.mapper.fhir.FhirInterface;
 import de.samply.samplexchange.utils.fhir.FhirComponent;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Service;
+
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -12,16 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.r4.model.Patient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
-/** Jump Mapping.
+/**
+ * Jump Mapping.
  * This mapping transfers everything from one blaze with bbmri to another
  */
 @Service
@@ -29,80 +27,84 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class Bbmri2Bbmri extends FhirInterface {
 
-  FhirComponent fhirComponent;
+    FhirComponent fhirComponent;
 
-  /** Constructor. */
-  @Autowired
-  public Bbmri2Bbmri(Configuration configuration) throws Exception {
-    super(configuration);
-    fhirComponent = new FhirComponent(configuration);
-  }
-
-  /** Transferring. */
-  @PostConstruct
-  public void transfer()
-      throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-    log.info("Running TransFAIR in BBMRI2BBMRI mode");
-    if (!this.setup()) {
-      log.info("Variables are not set, transfer not possible");
-      return;
+    /**
+     * Constructor.
+     */
+    @Autowired
+    public Bbmri2Bbmri(Configuration configuration) throws Exception {
+        super(configuration);
+        fhirComponent = new FhirComponent(configuration);
     }
 
-    log.info("Setup complete");
+    /**
+     * Transferring.
+     */
+    @PostConstruct
+    public void transfer()
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        log.info("Running TransFAIR in BBMRI2BBMRI mode");
+        if (!this.setup()) {
+            log.info("Variables are not set, transfer not possible");
+            return;
+        }
 
-    // TODO Collect Organization and Collection
+        log.info("Setup complete");
 
-    fhirComponent
-        .getFhirExportInterface()
-        .export(
-            fhirComponent.transferController.buildResources(
-                fhirComponent.transferController.fetchOrganizations(
-                    fhirComponent.getSourceFhirServer())));
-    fhirComponent
-        .getFhirExportInterface()
-        .export(
-            fhirComponent.transferController.buildResources(
-                fhirComponent.transferController.fetchOrganizationAffiliation(
-                    fhirComponent.getSourceFhirServer())));
+        // TODO Collect Organization and Collection
 
-    int counter = 1;
+        fhirComponent
+                .getFhirExportInterface()
+                .export(
+                        fhirComponent.transferController.buildResources(
+                                fhirComponent.transferController.fetchOrganizations(
+                                        fhirComponent.getSourceFhirServer())));
+        fhirComponent
+                .getFhirExportInterface()
+                .export(
+                        fhirComponent.transferController.buildResources(
+                                fhirComponent.transferController.fetchOrganizationAffiliation(
+                                        fhirComponent.getSourceFhirServer())));
 
-    Set<String> patientRefs =
-        fhirComponent.transferController.getSpecimenPatients(fhirComponent.getSourceFhirServer());
+        int counter = 1;
 
-    log.info("Loaded " + patientRefs.size() + " Patients");
+        Set<String> patientRefs =
+                fhirComponent.transferController.getSpecimenPatients(fhirComponent.getSourceFhirServer());
 
-    for (String pid : patientRefs) {
-      List<IBaseResource> patientResources = new ArrayList<>();
-      log.debug("Loading data for patient " + pid);
+        log.info("Loaded " + patientRefs.size() + " Patients");
 
-      patientResources.add(
-          fhirComponent.transferController.fetchResource(
-              fhirComponent.getSourceFhirServer(), Patient.class, pid));
-      patientResources.addAll(
-          fhirComponent.transferController.fetchPatientSpecimens(
-              fhirComponent.getSourceFhirServer(), pid));
-      patientResources.addAll(
-          fhirComponent.transferController.fetchPatientObservation(
-              fhirComponent.getSourceFhirServer(), pid));
+        for (String pid : patientRefs) {
+            List<IBaseResource> patientResources = new ArrayList<>();
+            log.debug("Loading data for patient " + pid);
 
-      patientResources.addAll(
-          fhirComponent.transferController.fetchPatientCondition(
-              fhirComponent.getSourceFhirServer(), pid));
+            patientResources.add(
+                    fhirComponent.transferController.fetchResource(
+                            fhirComponent.getSourceFhirServer(), Patient.class, pid));
+            patientResources.addAll(
+                    fhirComponent.transferController.fetchPatientSpecimens(
+                            fhirComponent.getSourceFhirServer(), pid));
+            patientResources.addAll(
+                    fhirComponent.transferController.fetchPatientObservation(
+                            fhirComponent.getSourceFhirServer(), pid));
 
-      fhirComponent
-          .getFhirExportInterface()
-          .export(fhirComponent.transferController.buildResources(patientResources));
-      log.info("Exported Resources " + counter++ + "/" + patientRefs.size());
+            patientResources.addAll(
+                    fhirComponent.transferController.fetchPatientCondition(
+                            fhirComponent.getSourceFhirServer(), pid));
+
+            fhirComponent
+                    .getFhirExportInterface()
+                    .export(fhirComponent.transferController.buildResources(patientResources));
+            log.info("Exported Resources " + counter++ + "/" + patientRefs.size());
+        }
     }
-  }
 
-  private boolean setup() {
+    private boolean setup() {
 
-    if (fhirComponent.configuration.getSourceServer().isBlank()) {
-      return false;
+        if (fhirComponent.configuration.getSourceServer().isBlank()) {
+            return false;
+        }
+        return !fhirComponent.configuration.getFileExportPath().isBlank()
+                || !fhirComponent.configuration.getTargetServer().isBlank();
     }
-    return !fhirComponent.configuration.getFileExportPath().isBlank()
-        || !fhirComponent.configuration.getTargetServer().isBlank();
-  }
 }
