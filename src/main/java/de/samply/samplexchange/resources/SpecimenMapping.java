@@ -7,20 +7,17 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Specimenmappings for converting between bbmri.de and MII KDS.
  */
 @Slf4j
 public class SpecimenMapping
-        extends ConvertClass<org.hl7.fhir.r4.model.Specimen, org.hl7.fhir.r4.model.Specimen> {
+        extends ConvertClass<Specimen, Specimen> {
 
     // Shared
-    Date collectedDate;
+    DateTimeType collectedDate;
 
     String fastingStatus;
     String fastingStatusSystem;
@@ -54,12 +51,12 @@ public class SpecimenMapping
     private String miiConditionRef;
 
     @Override
-    public void fromBbmri(org.hl7.fhir.r4.model.Specimen resource) {
+    public void fromBbmri(Specimen resource) {
         this.bbmriId = resource.getId();
         this.bbmriSubject = resource.getSubject().getReference();
         this.bbmrisampleType = resource.getType().getCodingFirstRep().getCode();
 
-        this.collectedDate = resource.getCollection().getCollectedDateTimeType().getValue();
+        this.collectedDate = resource.getCollection().getCollectedDateTimeType();
         this.bbmriBodySite = resource.getCollection().getBodySite().getCodingFirstRep().getCode();
         this.fastingStatus =
                 resource.getCollection().getFastingStatusCodeableConcept().getCodingFirstRep().getCode();
@@ -104,7 +101,7 @@ public class SpecimenMapping
     }
 
     @Override
-    public void fromMii(org.hl7.fhir.r4.model.Specimen resource) {
+    public void fromMii(Specimen resource) {
 
         this.hasParent = resource.hasParent();
 
@@ -112,7 +109,7 @@ public class SpecimenMapping
         this.miiSubject = resource.getSubject().getReference();
 
         this.miiSampleType = resource.getType().getCodingFirstRep().getCode();
-        this.collectedDate = resource.getCollection().getCollectedDateTimeType().getValue();
+        this.collectedDate = resource.getCollection().getCollectedDateTimeType();
 
         if (Objects.equals(
                 resource.getCollection().getBodySite().getCodingFirstRep().getSystem(),
@@ -130,42 +127,48 @@ public class SpecimenMapping
         this.fastingStatusSystem =
                 resource.getCollection().getFastingStatusCodeableConcept().getCodingFirstRep().getSystem();
 
-        for (Extension extension : resource.getProcessingFirstRep().getExtension()) {
+        for (Extension e : resource.getExtension()) {
             if (Objects.equals(
-                    extension.getUrl(),
-                    "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Temperaturbedingungen")) {
-                Range r = (Range) extension.getValue();
-                this.miiStoargeTemperatureHigh = r.getHigh().getValue().longValue();
-                this.miiStoargeTemperaturelow = r.getLow().getValue().longValue();
-            } else if (Objects.equals(
-                    extension.getUrl(),
+                    e.getUrl(),
                     "https://simplifier.net/medizininformatikinitiative-modulbiobank/files/fsh-generated/resources/structuredefinition-diagnose.json")) {
-                this.setMiiConditionRef(extension.getValue().toString());
+                this.setMiiConditionRef(e.getValue().toString());
             }
         }
 
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(1900, Calendar.JANUARY, 1); // Month is zero-based
+        Date latestStorageDate = calendar.getTime();
+        Range latestStorageRange = new Range();
 
         // Storage temperature is an extension of the processing
-        for (Extension extension : resource.getProcessingFirstRep().getExtension()) {
-            if (Objects.equals(
-                    extension.getUrl(),
-                    "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Temperaturbedingungen")) {
-                Range r = (Range) extension.getValue();
-                this.miiStoargeTemperatureHigh = r.getHigh().getValue().longValue();
-                this.miiStoargeTemperaturelow = r.getLow().getValue().longValue();
+        for (Specimen.SpecimenProcessingComponent processingComponent : resource.getProcessing()) {
+            if (processingComponent.getProcedure().hasCoding("http://snomed.info/sct", "1186936003")) {
+                for (Extension extension : processingComponent.getExtension()) {
+                    if (Objects.equals(extension.getUrl(),
+                            "https://www.medizininformatik-initiative.de/fhir/ext/modul-biobank/StructureDefinition/Temperaturbedingungen")) {
+                        if (processingComponent.getTimePeriod().getStart().after(latestStorageDate)) {
+                            latestStorageRange = (Range) processingComponent.getExtensionFirstRep().getValue();
+
+                        }
+                    }
+                }
             }
         }
 
+        if (Objects.nonNull(latestStorageRange.getHigh())) {
+            this.miiStoargeTemperatureHigh = latestStorageRange.getHigh().getValue().longValue();
+            this.miiStoargeTemperaturelow = latestStorageRange.getLow().getValue().longValue();
+        }
     }
 
     @Override
-    public org.hl7.fhir.r4.model.Specimen toBbmri() {
+    public Specimen toBbmri() {
 
         if (this.hasParent) {
             return null;
         }
 
-        org.hl7.fhir.r4.model.Specimen specimen = new org.hl7.fhir.r4.model.Specimen();
+        Specimen specimen = new Specimen();
         specimen.setMeta(new Meta().addProfile("https://fhir.bbmri.de/StructureDefinition/Specimen"));
 
         specimen.setId(miiId);
@@ -179,7 +182,7 @@ public class SpecimenMapping
                 .setSystem("https://fhir.bbmri.de/CodeSystem/SampleMaterialType");
         specimen.setType(coding);
 
-        specimen.getCollection().getCollectedDateTimeType().setValue(this.collectedDate);
+        specimen.getCollection().setCollected(this.collectedDate);
 
         if (Objects.nonNull(miiBodySiteIcd)) {
             this.bbmriBodySite = miiBodySiteIcd;
@@ -224,8 +227,8 @@ public class SpecimenMapping
     }
 
     @Override
-    public org.hl7.fhir.r4.model.Specimen toMii() {
-        org.hl7.fhir.r4.model.Specimen specimen = new org.hl7.fhir.r4.model.Specimen();
+    public Specimen toMii() {
+        Specimen specimen = new Specimen();
         specimen.setMeta(
                 new Meta()
                         .addProfile(
@@ -247,7 +250,7 @@ public class SpecimenMapping
         coding.getCodingFirstRep().setCode(miiSampleType).setSystem("http://snomed.info/sct");
         specimen.setType(coding);
 
-        specimen.getCollection().getCollectedDateTimeType().setValue(this.collectedDate);
+        specimen.getCollection().setCollected(this.collectedDate);
 
         specimen
                 .getCollection().getFastingStatusCodeableConcept().getCodingFirstRep()

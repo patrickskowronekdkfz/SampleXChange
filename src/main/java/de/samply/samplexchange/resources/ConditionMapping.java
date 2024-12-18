@@ -2,10 +2,10 @@ package de.samply.samplexchange.resources;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Reference;
 
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -18,13 +18,15 @@ public class ConditionMapping
     private static final String ICD_10_GM_CODE_SYSTEM = "http://fhir.de/CodeSystem/bfarm/icd-10-gm";
     String bbmriId = "";
     String bbmriSubject;
-    Date onset;
+    DateTimeType onset;
     String diagnosisIcd10Who;
     String diagnosisSnomed;
     String diagnosisIcd10Gm;
+    String diagnosisIcd10GmVersion;
     String diagnosisIcd9;
     String miiId = "";
     String miiSubject;
+
     public ConditionMapping() {
     }
 
@@ -32,7 +34,7 @@ public class ConditionMapping
     public void fromBbmri(org.hl7.fhir.r4.model.Condition resource) {
         this.bbmriId = resource.getId();
         this.bbmriSubject = resource.getSubject().getReference();
-        this.onset = resource.getOnsetDateTimeType().getValue();
+        this.onset = resource.getOnsetDateTimeType();
 
         for (Coding coding : resource.getCode().getCoding()) {
             if (Objects.equals(coding.getSystem(), "http://hl7.org/fhir/sid/icd-10")) {
@@ -54,6 +56,7 @@ public class ConditionMapping
         for (Coding coding : resource.getCode().getCoding()) {
             if (Objects.equals(coding.getSystem(), ICD_10_GM_CODE_SYSTEM)) {
                 this.diagnosisIcd10Gm = coding.getCode();
+                this.diagnosisIcd10GmVersion = coding.getVersion();
                 break;
             }
 
@@ -67,7 +70,7 @@ public class ConditionMapping
         this.miiSubject = resource.getSubject().getReference();
 
 
-        this.onset = resource.getOnsetDateTimeType().getValue();
+        this.onset = resource.getOnsetDateTimeType();
     }
 
     @Override
@@ -83,13 +86,14 @@ public class ConditionMapping
 
         condition.setSubject(new Reference(bbmriSubject));
 
-        condition.getOnsetDateTimeType().setValue(this.onset);
+        condition.setOnset(this.onset);
 
         if (Objects.nonNull(this.diagnosisIcd10Gm)) {
             condition
                     .getCode()
                     .getCodingFirstRep()
                     .setSystem(ICD_10_GM_CODE_SYSTEM)
+                    .setVersion(this.diagnosisIcd10GmVersion)
                     .setCode(this.diagnosisIcd10Gm);
         }
 
@@ -111,13 +115,14 @@ public class ConditionMapping
 
         condition.setSubject(new Reference(miiSubject));
 
-        condition.getOnsetDateTimeType().setValue(this.onset);
+        condition.setOnset(this.onset);
 
         if (Objects.nonNull(this.diagnosisIcd10Gm)) {
             condition
                     .getCode()
                     .getCodingFirstRep()
                     .setSystem(ICD_10_GM_CODE_SYSTEM)
+                    .setVersion(this.diagnosisIcd10GmVersion)
                     .setCode(this.diagnosisIcd10Gm);
         }
         if (Objects.isNull(this.diagnosisIcd10Gm) && Objects.nonNull(this.diagnosisIcd10Who)) {
@@ -125,6 +130,7 @@ public class ConditionMapping
                     .getCode()
                     .getCodingFirstRep()
                     .setSystem(ICD_10_GM_CODE_SYSTEM)
+                    .setVersion(this.diagnosisIcd10GmVersion)
                     .setCode(this.diagnosisIcd10Who);
         }
         if (Objects.nonNull(this.diagnosisSnomed)) {

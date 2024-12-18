@@ -1,6 +1,7 @@
 package de.samply.samplexchange.resources;
 
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGenderEnumFactory;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Meta;
@@ -24,7 +25,7 @@ public class PatientMapping
 
     Date brithDate;
     boolean patientDeceased;
-    Date patientDeceasedDateTime;
+    DateTimeType patientDeceasedDateTime;
     String gender;
 
     public PatientMapping() {
@@ -57,7 +58,7 @@ public class PatientMapping
 
         if (resource.hasDeceased()) {
             this.patientDeceased = true;
-            this.patientDeceasedDateTime = resource.getDeceasedDateTimeType().getValue();
+            this.patientDeceasedDateTime = resource.getDeceasedDateTimeType();
         } else {
             this.patientDeceased = false;
         }
@@ -74,7 +75,7 @@ public class PatientMapping
 
         if (resource.getDeceasedBooleanType().equals(new BooleanType(true))) {
             this.patientDeceased = true;
-            this.patientDeceasedDateTime = resource.getDeceasedDateTimeType().getValue();
+            this.patientDeceasedDateTime = resource.getDeceasedDateTimeType();
         } else {
             this.patientDeceased = false;
         }
@@ -101,7 +102,7 @@ public class PatientMapping
         patient.setId(bbmriId);
 
         if (this.patientDeceased) {
-            patient.getDeceasedDateTimeType().setValue(this.patientDeceasedDateTime);
+            patient.setDeceased(this.patientDeceasedDateTime);
         }
 
         return patient;
@@ -130,7 +131,7 @@ public class PatientMapping
         }
 
         if (this.patientDeceased) {
-            patient.getDeceasedDateTimeType().setValue(this.patientDeceasedDateTime);
+            patient.setDeceased(this.patientDeceasedDateTime);
         }
 
         return patient;
