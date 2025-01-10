@@ -155,9 +155,13 @@ public class SpecimenMapping
             }
         }
 
-        if (Objects.nonNull(latestStorageRange.getHigh())) {
-            this.miiStoargeTemperatureHigh = latestStorageRange.getHigh().getValue().longValue();
-            this.miiStoargeTemperaturelow = latestStorageRange.getLow().getValue().longValue();
+        if(Objects.nonNull(latestStorageRange)) {
+            if (Objects.nonNull(latestStorageRange.getHigh().getValue())) {
+                this.miiStoargeTemperatureHigh = latestStorageRange.getHigh().getValue().longValue();
+            }
+            if (Objects.nonNull(latestStorageRange.getLow().getValue())) {
+                this.miiStoargeTemperaturelow = latestStorageRange.getLow().getValue().longValue();
+            }
         }
     }
 
