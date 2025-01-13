@@ -85,7 +85,10 @@ public class Mii2Bbmri extends FhirInterface {
                 SpecimenMapping transferSpecimenMapping = new SpecimenMapping();
                 log.debug("Analysing Specimen {} with format bbmri.de", specimen.getId());
                 transferSpecimenMapping.fromMii(specimen);
-                patientResources.add(metaMapping.tagResource(transferSpecimenMapping.toBbmri()));
+                Specimen specimenl = transferSpecimenMapping.toBbmri();
+                if (specimenl != null) {
+                    patientResources.add(metaMapping.tagResource(specimenl));
+                }
             }
 
             for (IBaseResource base :
