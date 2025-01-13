@@ -186,6 +186,8 @@ public class SpecimenMapping
                     .setCode(SnomedSamplyTypeConverter.fromMiiToBbmri(this.miiSampleType))
                     .setSystem("https://fhir.bbmri.de/CodeSystem/SampleMaterialType");
             specimen.setType(coding);
+        }  else {
+            log.warn("Sample {} has no sample type", miiId);
         }
 
         if (Objects.nonNull(this.collectedDate)) {
@@ -253,7 +255,7 @@ public class SpecimenMapping
         if (Objects.nonNull(miiSampleType)) {
             this.miiSampleType = SnomedSamplyTypeConverter.fromBbmriToMii(bbmrisampleType);
         } else {
-            log.error("Sample {} has no sample type", miiId);
+            log.warn("Sample {} has no sample type", bbmriId);
         }
 
         CodeableConcept coding = new CodeableConcept();
