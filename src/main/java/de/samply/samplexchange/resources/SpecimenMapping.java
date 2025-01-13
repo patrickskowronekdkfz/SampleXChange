@@ -179,14 +179,18 @@ public class SpecimenMapping
 
         specimen.getSubject().setReference(miiSubject);
 
-        CodeableConcept coding = new CodeableConcept();
-        coding
-                .getCodingFirstRep()
-                .setCode(SnomedSamplyTypeConverter.fromMiiToBbmri(this.miiSampleType))
-                .setSystem("https://fhir.bbmri.de/CodeSystem/SampleMaterialType");
-        specimen.setType(coding);
+        if(Objects.nonNull(this.miiSampleType)) {
+            CodeableConcept coding = new CodeableConcept();
+            coding
+                    .getCodingFirstRep()
+                    .setCode(SnomedSamplyTypeConverter.fromMiiToBbmri(this.miiSampleType))
+                    .setSystem("https://fhir.bbmri.de/CodeSystem/SampleMaterialType");
+            specimen.setType(coding);
+        }
 
-        specimen.getCollection().setCollected(this.collectedDate);
+        if (Objects.nonNull(this.collectedDate)) {
+            specimen.getCollection().setCollected(this.collectedDate);
+        }
 
         if (Objects.nonNull(miiBodySiteIcd)) {
             this.bbmriBodySite = miiBodySiteIcd;
@@ -246,8 +250,10 @@ public class SpecimenMapping
 
         specimen.getSubject().setReference(miiSubject);
 
-        if (Objects.equals(miiSampleType, null)) {
+        if (Objects.nonNull(miiSampleType)) {
             this.miiSampleType = SnomedSamplyTypeConverter.fromBbmriToMii(bbmrisampleType);
+        } else {
+            log.error("Sample {} has no sample type", miiId);
         }
 
         CodeableConcept coding = new CodeableConcept();
