@@ -74,10 +74,11 @@ public class FhirComponent {
         return sourceFhirServer.getClient();
     }
 
-    private void setAuth(FhirClient sourceClient, String user, String password) {
+    private void setAuth(FhirClient client, String user, String password) {
         if (!user.isBlank() && !password.isBlank()) {
-            sourceClient.setBasicAuth(
-                    configuration.getSourceServerUsername(), configuration.getSourceServerPassword());
+            log.info("Setting Basic Authentication for FHIR server {}", client.getClient().getServerBase());
+            client.setBasicAuth(
+                    user, password);
         }
     }
 
