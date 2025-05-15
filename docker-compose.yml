@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  samplexchange:
+    build: .
+    environment:
+      PROFILE: "MII2BBMRI"
+      SOURCE_URL: http://blazea:8080/fhir
+      DISABLESSL: true
+      TARGET_URL: http://blazeb:8080/fhir;
