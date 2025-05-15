@@ -1,0 +1,19 @@
+logging:
+  level:
+    org:
+      springframework: INFO
+app:
+  version: '@project.version@'
+
+profile: "none"
+disablessl: "false"
+source:
+  url: ""
+  username: ""
+  password: ""
+target:
+  url: ""
+  username: ""
+  password: ""
+fileexportpath: ""
+
